@@ -15,6 +15,13 @@ import io.github.ahmedsaad167.bookstoremanager.model.Book;
 import io.github.ahmedsaad167.bookstoremanager.model.MaterialType;
 
 public class BookDao {
+    private static final List<String> SEARCHABLE_FIELDS = List.of(
+    "title",
+    "category",
+    "author",
+    "publisher"
+    );
+
     public int save(Book book) throws SQLException {
         try (Connection connection = DatabaseManager.getConnection()) {
             String sql = """
@@ -84,6 +91,22 @@ public class BookDao {
             }
             return books;
         }
+    }
+
+    public List<Book> findByTitle(String title) throws SQLException {
+        return findByField("title", title);
+    }
+
+    public List<Book> findByCategory(String category) throws SQLException {
+        return findByField("category", category);
+    }
+
+    public List<Book> findByAuthor(String author) throws SQLException {
+        return findByField("author", author);
+    }
+
+    public List<Book> findByPublisher(String publisher) throws SQLException {
+        return findByField("publisher", publisher);
     }
 
     public boolean update(Book book) throws SQLException {
@@ -172,5 +195,28 @@ public class BookDao {
                 preparedStatement.setString(10, book.getIsbn());
                 preparedStatement.setString(11, book.getAgeGroup().name());
                 preparedStatement.setString(12, book.getNotes());
+    }
+
+    private static List<Book> findByField(String field, String value) throws SQLException {
+        if (!SEARCHABLE_FIELDS.contains(field)) {
+            throw new IllegalArgumentException("Invalid search field.");
+        }
+        try (Connection connection = DatabaseManager.getConnection()) {
+            String sql = """
+                SELECT * FROM "books" 
+                WHERE %s = ? ;
+            """.formatted(field);
+            List<Book> books = new ArrayList<>(); 
+            try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+                preparedStatement.setString(1, value);
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    while (resultSet.next()) {
+                        books.add(mapRowToBook(resultSet));
+                    }
+                }
+            }
+            return books;
+
+        }
     }
 }
