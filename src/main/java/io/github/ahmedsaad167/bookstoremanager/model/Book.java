@@ -35,6 +35,13 @@ public class Book {
         setMaterialType(materialType);
         setAgeGroup(ageGroup);
     }
+    
+    public Book(int id, String title, String category, String author, 
+                double purchasePrice, double sellingPrice, int stockQuantity,
+                MaterialType materialType, AgeGroup ageGroup) {
+        this(title, category, author, purchasePrice, sellingPrice, stockQuantity, materialType, ageGroup);
+        this.id = id;
+    }
 
     public int getId() {
         return id;

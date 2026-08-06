@@ -1,5 +1,8 @@
 package io.github.ahmedsaad167.bookstoremanager.dao;
 
+import java.util.List;
+import java.util.ArrayList;
+
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.PreparedStatement;
@@ -7,7 +10,9 @@ import java.sql.Statement;
 import java.sql.ResultSet;
 
 import io.github.ahmedsaad167.bookstoremanager.database.DatabaseManager;
+import io.github.ahmedsaad167.bookstoremanager.model.AgeGroup;
 import io.github.ahmedsaad167.bookstoremanager.model.Book;
+import io.github.ahmedsaad167.bookstoremanager.model.MaterialType;
 
 public class BookDao {
     public int save(Book book) throws SQLException {
@@ -53,5 +58,72 @@ public class BookDao {
                 }
             }
         }
+    }
+
+    public Book findById(int id) throws SQLException {
+        try (Connection connection = DatabaseManager.getConnection()) {
+            String sql = """
+                SELECT * FROM "books"
+                WHERE id = ? ;
+                """;
+            try(PreparedStatement preparedStatement = connection.prepareStatement(sql)){
+                preparedStatement.setInt(1, id);
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    if (resultSet.next()) {
+                        return mapRowToBook(resultSet);
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    public List<Book> findAll() throws SQLException {
+        try (Connection connection = DatabaseManager.getConnection()) {
+            String sql = """
+                SELECT * FROM "books";
+            """;
+            List<Book> books = new ArrayList<>();
+            try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    while (resultSet.next()) {
+                        books.add(mapRowToBook(resultSet));
+                    }
+                }
+            }
+            return books;
+        }
+    }
+
+    private Book mapRowToBook(ResultSet resultSet) throws SQLException {
+        int id = resultSet.getInt("id");
+
+        String title = resultSet.getString("title");
+        String category = resultSet.getString("category");
+        String author = resultSet.getString("author");
+
+        double purchasePrice = resultSet.getDouble("purchase_price");
+        double sellingPrice = resultSet.getDouble("selling_price");
+
+        int stockQuantity = resultSet.getInt("stock_quantity");
+        
+        MaterialType materialType = MaterialType.valueOf(resultSet.getString("material_type"));
+
+        String publisher = resultSet.getString("publisher");
+
+        int publicationYear = resultSet.getInt("publication_year");
+
+        String isbn = resultSet.getString("isbn");
+
+        AgeGroup ageGroup = AgeGroup.valueOf(resultSet.getString("age_group"));
+
+        String notes = resultSet.getString("notes");
+
+        Book book = new Book(id, title, category, author, purchasePrice, sellingPrice, stockQuantity, materialType, ageGroup);
+        book.setPublisher(publisher);
+        book.setPublicationYear(publicationYear);
+        book.setIsbn(isbn);
+        book.setNotes(notes);
+        return book;
     }
 }
