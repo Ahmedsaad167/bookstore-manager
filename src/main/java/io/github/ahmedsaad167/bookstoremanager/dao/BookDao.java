@@ -113,6 +113,20 @@ public class BookDao {
         }
     }
 
+    public boolean deleteById(int id) throws SQLException {
+        try (Connection connection = DatabaseManager.getConnection()) {
+            String sql = """
+                DELETE FROM "books"
+                WHERE "id" = ? ;
+            """;
+            try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+                preparedStatement.setInt(1, id);
+                int rowAffected = preparedStatement.executeUpdate();
+                return rowAffected > 0;
+            }
+        }
+    }
+
     private static Book mapRowToBook(ResultSet resultSet) throws SQLException {
         int id = resultSet.getInt("id");
 
