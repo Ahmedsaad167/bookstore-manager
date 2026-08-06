@@ -35,24 +35,15 @@ public class BookDao {
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """;
             try(PreparedStatement preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)){
-                preparedStatement.setString(1, book.getTitle());
-                preparedStatement.setString(2, book.getCategory());
-                preparedStatement.setString(3, book.getAuthor());
-                preparedStatement.setDouble(4, book.getPurchasePrice());
-                preparedStatement.setDouble(5, book.getSellingPrice());
-                preparedStatement.setInt(6, book.getStockQuantity());
-                preparedStatement.setString(7, book.getMaterialType().name());
-                preparedStatement.setString(8, book.getPublisher());
-                preparedStatement.setInt(9, book.getPublicationYear());
-                preparedStatement.setString(10, book.getIsbn());
-                preparedStatement.setString(11, book.getAgeGroup().name());
-                preparedStatement.setString(12, book.getNotes());
-    
-                preparedStatement.executeUpdate();
+                mapBookToRow(preparedStatement, book);
+                int rowAffected = preparedStatement.executeUpdate();
+                if (rowAffected == 0) {
+                    throw new SQLException("Saving book failed.");
+                }
                 try(ResultSet generatedKeys = preparedStatement.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
                         return generatedKeys.getInt(1);
-                    } 
+                    }
                     
                     throw new SQLException("Failed to retrieve generated book ID.");
                 }
@@ -95,7 +86,34 @@ public class BookDao {
         }
     }
 
-    private Book mapRowToBook(ResultSet resultSet) throws SQLException {
+    public boolean update(Book book) throws SQLException {
+        try (Connection connection = DatabaseManager.getConnection()) {
+            String sql = """
+                UPDATE "books"
+                SET "title" = ?,
+                    "category" = ?, 
+                    "author" = ?,
+                    "purchase_price" = ?,
+                    "selling_price" = ?,
+                    "stock_quantity" = ?,
+                    "material_type" = ?,
+                    "publisher" = ?,
+                    "publication_year" = ?,
+                    "isbn" = ?,
+                    "age_group" = ?,
+                    "notes" = ?
+                WHERE "id" =  ?;
+            """;
+            try(PreparedStatement preparedStatement = connection.prepareStatement(sql)){
+                mapBookToRow(preparedStatement, book);
+                preparedStatement.setInt(13, book.getId());
+                int rowAffected = preparedStatement.executeUpdate();
+                return rowAffected > 0;
+            }
+        }
+    }
+
+    private static Book mapRowToBook(ResultSet resultSet) throws SQLException {
         int id = resultSet.getInt("id");
 
         String title = resultSet.getString("title");
@@ -125,5 +143,20 @@ public class BookDao {
         book.setIsbn(isbn);
         book.setNotes(notes);
         return book;
+    }
+
+    private static void mapBookToRow(PreparedStatement preparedStatement, Book book) throws SQLException {
+                preparedStatement.setString(1, book.getTitle());
+                preparedStatement.setString(2, book.getCategory());
+                preparedStatement.setString(3, book.getAuthor());
+                preparedStatement.setDouble(4, book.getPurchasePrice());
+                preparedStatement.setDouble(5, book.getSellingPrice());
+                preparedStatement.setInt(6, book.getStockQuantity());
+                preparedStatement.setString(7, book.getMaterialType().name());
+                preparedStatement.setString(8, book.getPublisher());
+                preparedStatement.setInt(9, book.getPublicationYear());
+                preparedStatement.setString(10, book.getIsbn());
+                preparedStatement.setString(11, book.getAgeGroup().name());
+                preparedStatement.setString(12, book.getNotes());
     }
 }
