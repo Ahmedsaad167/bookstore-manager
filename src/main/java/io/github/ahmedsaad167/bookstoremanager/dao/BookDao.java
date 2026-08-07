@@ -217,7 +217,6 @@ public class BookDao {
                 }
             }
             return books;
-
         }
     }
 }

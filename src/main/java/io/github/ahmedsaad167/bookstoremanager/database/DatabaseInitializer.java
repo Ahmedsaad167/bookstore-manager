@@ -9,6 +9,7 @@ public class DatabaseInitializer {
         try (Connection connection = DatabaseManager.getConnection();
             Statement statement = connection.createStatement()) {
                 createBooksTable(statement);
+                createCustomersTable(statement);
             }                
         }
         
@@ -28,6 +29,22 @@ public class DatabaseInitializer {
                     isbn TEXT,
                     age_group TEXT NOT NULL,
                     notes TEXT
+                );
+            """;
+
+            statement.executeUpdate(sql);
+        }
+        
+        private static void createCustomersTable(Statement statement) throws SQLException {
+            String sql = """
+                CREATE TABLE IF NOT EXISTS "customers" (
+                    "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+                    "name" TEXT NOT NULL,
+                    "username" TEXT NOT NULL UNIQUE,
+                    "phone" TEXT NOT NULL UNIQUE,
+                    "email" TEXT,
+                    "address" TEXT,
+                    "notes" TEXT
                 );
             """;
     
