@@ -204,11 +204,12 @@ public class BookDao {
         try (Connection connection = DatabaseManager.getConnection()) {
             String sql = """
                 SELECT * FROM "books" 
-                WHERE %s = ? ;
+                WHERE %s LIKE ? ;
             """.formatted(field);
             List<Book> books = new ArrayList<>(); 
+            
             try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-                preparedStatement.setString(1, value);
+                preparedStatement.setString(1, "%" + value + "%");
                 try (ResultSet resultSet = preparedStatement.executeQuery()) {
                     while (resultSet.next()) {
                         books.add(mapRowToBook(resultSet));
