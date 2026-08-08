@@ -6,7 +6,6 @@ import java.util.List;
 import io.github.ahmedsaad167.bookstoremanager.dao.BookDao;
 import io.github.ahmedsaad167.bookstoremanager.database.DatabaseInitializer;
 import io.github.ahmedsaad167.bookstoremanager.model.Book;
-import io.github.ahmedsaad167.bookstoremanager.database.DatabaseInitializer;
 
 public class Main {
 
