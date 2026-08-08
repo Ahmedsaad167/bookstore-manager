@@ -10,6 +10,8 @@ public class DatabaseInitializer {
             Statement statement = connection.createStatement()) {
                 createBooksTable(statement);
                 createCustomersTable(statement);
+                createOrdersTable(statement);
+                createOrderItemsTable(statement);
             }                
         }
         
@@ -48,6 +50,39 @@ public class DatabaseInitializer {
                 );
             """;
     
+            statement.executeUpdate(sql);
+        }
+
+        private static void createOrdersTable(Statement statement) throws SQLException {
+            String sql = """
+                CREATE TABLE IF NOT EXISTS "orders" (
+                    "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+                    "customer_id" INTEGER NOT NULL,
+                    "order_date" TEXT NOT NULL,
+                    "order_status" TEXT NOT NULL,
+                    "total_price" REAL NOT NULL,
+                    "discount" REAL NOT NULL DEFAULT 0,
+                    "price_after_discount" REAL NOT NULL,
+                    "notes" TEXT,
+                    FOREIGN KEY("customer_id") REFERENCES "customers"("id")
+                );
+            """;
+            statement.executeUpdate(sql);
+        }
+
+        private static void createOrderItemsTable(Statement statement) throws SQLException {
+            String sql = """
+                CREATE TABLE IF NOT EXISTS "order_items" (
+                    "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+                    "order_id" INTEGER NOT NULL,
+                    "book_id" INTEGER NOT NULL,
+                    "quantity" INTEGER NOT NULL,
+                    "unit_price" REAL NOT NULL,
+                    "total_price" REAL NOT NULL,
+                    FOREIGN KEY("order_id") REFERENCES "orders"("id"),
+                    FOREIGN KEY("book_id") REFERENCES "books"("id")
+                ); 
+            """;
             statement.executeUpdate(sql);
         }
 }
