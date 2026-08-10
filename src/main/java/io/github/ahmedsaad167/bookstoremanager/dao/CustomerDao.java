@@ -71,6 +71,23 @@ public class CustomerDao {
         return null;
     }
 
+    public Customer findById(Connection connection, int id) throws SQLException {
+        String sql = """
+            SELECT * FROM "customers"
+            WHERE "id" = ? ;
+        """;
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setInt(1, id);
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    return mapRowToCustomer(resultSet);
+                }
+            }
+        }
+
+        return null;
+    }
+
     public List<Customer> findAll() throws SQLException {
         try (Connection connection = DatabaseManager.getConnection()) {
             String sql = """

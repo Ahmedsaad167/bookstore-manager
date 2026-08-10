@@ -110,7 +110,7 @@ public class Order {
         recalculatePrices();
     }
 
-    private void recalculatePrices() {
+    public void recalculatePrices() {
         totalPrice = 0;
 
         for (OrderItem item : items) {
