@@ -28,6 +28,17 @@ public class Order {
         this.items = new ArrayList<>();
     }
 
+    public Order(int id, int customerId, LocalDateTime orderDate, OrderStatus orderStatus, double discount,
+            String notes) {
+        this.id = id;
+        this.customerId = customerId;
+        this.orderDate = orderDate;
+        this.orderStatus = orderStatus;
+        this.discount = discount;
+        this.notes = notes;
+        this.items = new ArrayList<>();
+    }
+
     public void setCustomerId(int customerId) {
         this.customerId = customerId;
     }
