@@ -76,6 +76,22 @@ public class BookDao {
         return null;
     }
 
+    public Book findById(Connection connection, int id) throws SQLException {
+        String sql = """
+            SELECT * FROM "books"
+            WHERE id = ? ;
+            """;
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql)){
+            preparedStatement.setInt(1, id);
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    return mapRowToBook(resultSet);
+                }
+            }
+        }
+        return null;
+    }
+
     public List<Book> findAll() throws SQLException {
         try (Connection connection = DatabaseManager.getConnection()) {
             String sql = """
@@ -133,6 +149,23 @@ public class BookDao {
                 int rowAffected = preparedStatement.executeUpdate();
                 return rowAffected > 0;
             }
+        }
+    }
+
+    public boolean decreaseStock(Connection connection, int bookId, int quantity) throws SQLException {
+        String sql = """
+            UPDATE "books"
+            SET "stock_quantity" = "stock_quantity" - ?
+            WHERE "id" = ?
+            AND "stock_quantity" >= ? ;
+        """;
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setInt(1, quantity);
+            preparedStatement.setInt(2, bookId);
+            preparedStatement.setInt(3, quantity);
+
+            return preparedStatement.executeUpdate() > 0;
         }
     }
 
