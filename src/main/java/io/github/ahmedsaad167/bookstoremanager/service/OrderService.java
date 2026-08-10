@@ -2,6 +2,7 @@ package io.github.ahmedsaad167.bookstoremanager.service;
 
 import java.util.Set;
 import java.util.HashSet;
+import java.util.List;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -55,6 +56,34 @@ public class OrderService {
             } finally {
                 connection.setAutoCommit(true);
             }
+        }
+    }
+
+    public Order getOrderById(int id) throws SQLException {
+        validateOrderId(id);
+
+        try (Connection connection = DatabaseManager.getConnection()) {
+            Order order = orderDao.findById(connection, id);
+
+            if (order == null) {
+                return null;
+            }
+
+            loadOrderItems(connection, order);
+
+            return order;
+        }
+    }
+
+    public List<Order> getAllOrders() throws SQLException {
+        try (Connection connection = DatabaseManager.getConnection()) {
+            List<Order> orders = orderDao.findAll(connection);
+            
+            for (Order order : orders) {
+                loadOrderItems(connection, order);
+            }
+
+            return orders;
         }
     }
 
@@ -156,6 +185,19 @@ public class OrderService {
             if (!bookIds.add(item.getBookId())) {
                 throw new IllegalArgumentException("Book appears more than once in the order: " + item.getBookId());
             }
+        }
+    }
+
+    private void validateOrderId(int id) {
+        if (id <= 0) {
+            throw new IllegalArgumentException("Invalid order ID.");
+        }
+    }
+
+    private void loadOrderItems(Connection connection, Order order) throws SQLException {
+        List<OrderItem> items = orderItemDao.findByOrderId(connection, order.getId());
+        for (OrderItem item : items) {
+            order.addItem(item);
         }
     }
 }
