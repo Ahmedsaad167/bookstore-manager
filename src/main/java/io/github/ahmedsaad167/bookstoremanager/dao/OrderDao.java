@@ -61,7 +61,17 @@ public class OrderDao {
         }
         return null;
     }
+    
+    public Order findByIdWithItems(Connection connection, int id) throws SQLException {
+        Order order = findById(connection, id);
 
+        if (order == null) {
+            return null;
+        }
+
+        return order;
+    }
+    
     public List<Order> findAll(Connection connection) throws SQLException {
         String sql = """
             SELECT * FROM "orders";
@@ -111,6 +121,7 @@ public class OrderDao {
             return preparedStatement.executeUpdate() > 0;
         }
     }
+
 
     private static void mapOrderToRow(PreparedStatement preparedStatement, Order order) throws SQLException {
         preparedStatement.setInt(1, order.getCustomerId());
