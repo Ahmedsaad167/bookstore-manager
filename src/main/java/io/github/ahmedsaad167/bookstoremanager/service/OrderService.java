@@ -15,7 +15,7 @@ import io.github.ahmedsaad167.bookstoremanager.model.OrderItem;
 import io.github.ahmedsaad167.bookstoremanager.dao.OrderItemDao;
 import io.github.ahmedsaad167.bookstoremanager.database.DatabaseManager;
 import io.github.ahmedsaad167.bookstoremanager.model.Order;
-
+import io.github.ahmedsaad167.bookstoremanager.search.OrderSearchCriteria;
 
 public class OrderService {
     private final CustomerDao customerDao;
@@ -79,6 +79,20 @@ public class OrderService {
         try (Connection connection = DatabaseManager.getConnection()) {
             List<Order> orders = orderDao.findAll(connection);
             
+            for (Order order : orders) {
+                loadOrderItems(connection, order);
+            }
+
+            return orders;
+        }
+    }
+
+    public List<Order> search(OrderSearchCriteria criteria) throws SQLException {
+        
+        validateOrderSearchCriteria(criteria);
+
+        try (Connection connection = DatabaseManager.getConnection()) {
+            List<Order> orders = orderDao.search(connection, criteria);
             for (Order order : orders) {
                 loadOrderItems(connection, order);
             }
@@ -301,6 +315,66 @@ public class OrderService {
                     + item.getBookId()
                 );
             }
+        }
+    }
+
+    private void validateOrderSearchCriteria(
+        OrderSearchCriteria criteria) {
+
+        if (criteria == null) {
+            throw new IllegalArgumentException(
+                "Search criteria cannot be null."
+            );
+        }
+
+        if (criteria.getOrderId() != null
+                && criteria.getOrderId() <= 0) {
+
+            throw new IllegalArgumentException(
+                "Order ID must be greater than zero."
+            );
+        }
+
+        if (criteria.getBookId() != null
+                && criteria.getBookId() <= 0) {
+
+            throw new IllegalArgumentException(
+                "Book ID must be greater than zero."
+            );
+        }
+
+        if (criteria.getMinPrice() != null
+                && criteria.getMinPrice() < 0) {
+
+            throw new IllegalArgumentException(
+                "Minimum price cannot be negative."
+            );
+        }
+
+        if (criteria.getMaxPrice() != null
+                && criteria.getMaxPrice() < 0) {
+
+            throw new IllegalArgumentException(
+                "Maximum price cannot be negative."
+            );
+        }
+
+        if (criteria.getMinPrice() != null
+                && criteria.getMaxPrice() != null
+                && criteria.getMinPrice() > criteria.getMaxPrice()) {
+
+            throw new IllegalArgumentException(
+                "Minimum price cannot be greater than maximum price."
+            );
+        }
+
+        if (criteria.getMinDate() != null
+                && criteria.getMaxDate() != null
+                && criteria.getMinDate().isAfter(criteria.getMaxDate())) {
+
+            throw new IllegalArgumentException(
+                "Minimum date cannot be after maximum date."
+            );
         }
     }
 }
