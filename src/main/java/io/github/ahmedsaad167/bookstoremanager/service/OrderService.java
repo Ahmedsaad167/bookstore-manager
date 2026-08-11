@@ -87,6 +87,51 @@ public class OrderService {
         }
     }
 
+    public boolean updateOrder(Order order) throws SQLException {
+        validateOrder(order);
+        validateOrderId(order.getId());
+
+        try (Connection connection = DatabaseManager.getConnection()) {
+            try {
+                connection.setAutoCommit(false);
+
+                Order oldOrder = orderDao.findById(connection, order.getId());
+
+                if (oldOrder == null) {
+                    throw new IllegalArgumentException(
+                        "Order not found: " + order.getId()
+                    );
+                }
+
+                loadOrderItems(connection, oldOrder);
+
+                restoreOldStock(connection, oldOrder);
+
+                validateCustomerExists(connection, order.getCustomerId());
+
+                prepareOrderItems(connection, order);
+
+                orderItemDao.deleteByOrderId(connection, order.getId());
+
+                orderDao.update(connection, order);
+
+                saveOrderItems(connection, order, order.getId());
+
+                decreaseBooksStock(connection, order);
+
+                connection.commit();
+
+                return true;
+
+            } catch (SQLException | RuntimeException e) {
+                connection.rollback();
+                throw e;
+            } finally {
+                connection.setAutoCommit(true);
+            }
+        }
+    }
+
     private void validateOrder(Order order) {
         if (order == null) {
             throw new IllegalArgumentException("Order cannot be null.");
@@ -198,6 +243,27 @@ public class OrderService {
         List<OrderItem> items = orderItemDao.findByOrderId(connection, order.getId());
         for (OrderItem item : items) {
             order.addItem(item);
+        }
+    }
+
+    private void restoreOldStock(
+        Connection connection,
+        Order oldOrder) throws SQLException {
+
+        for (OrderItem item : oldOrder.getItems()) {
+
+            boolean increased = bookDao.increaseStock(
+                connection,
+                item.getBookId(),
+                item.getQuantity()
+            );
+
+            if (!increased) {
+                throw new IllegalStateException(
+                    "Failed to restore stock for book: "
+                    + item.getBookId()
+                );
+            }
         }
     }
 }
