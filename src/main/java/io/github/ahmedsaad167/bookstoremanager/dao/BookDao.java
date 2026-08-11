@@ -13,6 +13,7 @@ import io.github.ahmedsaad167.bookstoremanager.database.DatabaseManager;
 import io.github.ahmedsaad167.bookstoremanager.model.AgeGroup;
 import io.github.ahmedsaad167.bookstoremanager.model.Book;
 import io.github.ahmedsaad167.bookstoremanager.model.MaterialType;
+import io.github.ahmedsaad167.bookstoremanager.search.BookSearchCriteria;
 
 public class BookDao {
     private static final List<String> SEARCHABLE_FIELDS = List.of(
@@ -123,6 +124,128 @@ public class BookDao {
 
     public List<Book> findByPublisher(String publisher) throws SQLException {
         return findByField("publisher", publisher);
+    }
+
+    public List<Book> search(Connection connection, BookSearchCriteria criteria) throws SQLException {
+        if (criteria == null) {
+            throw new IllegalArgumentException("Search criteria cannot be null.");
+        }
+
+        StringBuilder sql = new StringBuilder("""
+            SELECT * FROM "books"
+            WHERE 1 = 1
+        """);
+
+        List<Object> parameters = new ArrayList<>();
+
+        if (criteria.getTitle() != null && !criteria.getTitle().isBlank()) {
+            sql.append("""
+                AND "title" LIKE ?
+            """);
+            parameters.add("%" + criteria.getTitle().trim() + "%");
+        }
+
+        if (criteria.getCategory() != null && !criteria.getCategory().isBlank()) {
+            sql.append("""
+                AND "category" LIKE ?
+            """);
+            parameters.add("%" + criteria.getCategory().trim() + "%");
+        }
+
+        if (criteria.getAuthor() != null && !criteria.getAuthor().isBlank()) {
+            sql.append("""
+                AND "author" LIKE ?
+            """);
+            parameters.add("%" + criteria.getAuthor().trim() + "%");
+        }
+
+        if (criteria.getPublisher() != null && !criteria.getPublisher().isBlank()) {
+            sql.append("""
+                AND "publisher" LIKE ?
+            """);
+            parameters.add("%" + criteria.getPublisher().trim() + "%");
+        }
+
+        if (criteria.getIsbn() != null && !criteria.getIsbn().isBlank()) {
+            sql.append("""
+                AND "isbn" LIKE ?
+            """);
+            parameters.add("%" + criteria.getIsbn().trim() + "%");
+        }
+
+        if (criteria.getNotes() != null && !criteria.getNotes().isBlank()) {
+            sql.append("""
+                AND "notes" LIKE ?
+            """);
+            parameters.add("%" + criteria.getNotes().trim() + "%");
+        }
+
+    if (criteria.getMaterialType() != null) {
+        sql.append("""
+            AND "material_type" = ?
+        """);
+        parameters.add(criteria.getMaterialType().name());
+    }
+
+    if (criteria.getAgeGroup() != null) {
+        sql.append("""
+            AND "age_group" = ?
+        """);
+        parameters.add(criteria.getAgeGroup().name());
+    }
+
+    if (criteria.getPublicationYear() != null) {
+        sql.append("""
+            AND "publication_year" = ?
+        """);
+        parameters.add(criteria.getPublicationYear());
+    }
+
+    if (criteria.getMinSellingPrice() != null) {
+        sql.append("""
+            AND "selling_price" >= ?
+        """);
+        parameters.add(criteria.getMinSellingPrice());
+    }
+
+    if (criteria.getMaxSellingPrice() != null) {
+        sql.append("""
+            AND "selling_price" <= ?
+        """);
+        parameters.add(criteria.getMaxSellingPrice());
+    }
+
+    if (criteria.isAvailable() != null) {
+        if (criteria.isAvailable()) {
+            sql.append("""
+                AND "stock_quantity" > 0
+            """);
+        } else {
+            sql.append("""
+                AND "stock_quantity" = 0
+            """);
+        }
+    }
+
+    sql.append("""
+        ORDER BY "title";
+    """);
+
+    List<Book> books = new ArrayList<>();
+
+    try (PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
+        for (int i = 0; i < parameters.size(); i++) {
+            preparedStatement.setObject(i + 1, parameters.get(i));
+        }
+
+        try (ResultSet resultSet = preparedStatement.executeQuery()) {
+            while(resultSet.next()) {
+                books.add(mapRowToBook(resultSet));
+            }
+        }
+    }
+    return books;
+
     }
 
     public boolean update(Book book) throws SQLException {
