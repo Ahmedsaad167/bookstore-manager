@@ -169,6 +169,21 @@ public class BookDao {
         }
     }
 
+    public boolean increaseStock(Connection connection, int bookId, int quantity) throws SQLException {
+        String sql = """
+            UPDATE "books"
+            SET "stock_quantity" = "stock_quantity" + ?
+            WHERE "id" = ?;
+        """;
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setInt(1, quantity);
+            preparedStatement.setInt(2, bookId);
+
+            return preparedStatement.executeUpdate() > 0;
+        }
+    }
+
     public boolean deleteById(int id) throws SQLException {
         try (Connection connection = DatabaseManager.getConnection()) {
             String sql = """

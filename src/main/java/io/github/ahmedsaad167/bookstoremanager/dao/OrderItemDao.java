@@ -117,15 +117,28 @@ public class OrderItemDao {
     }
 
     public boolean deleteById(Connection connection, int id) throws SQLException {
+            String sql = """
+                DELETE FROM "order_items"
+                WHERE "id" = ? ;
+            """;
+
+            try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+                preparedStatement.setInt(1, id);
+
+                return preparedStatement.executeUpdate() > 0;
+            }
+        }
+
+        public void deleteByOrderId(Connection connection, int orderId) throws SQLException {
         String sql = """
             DELETE FROM "order_items"
-            WHERE "id" = ? ;
+            WHERE "order_id" = ?;
         """;
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setInt(1, id);
+            preparedStatement.setInt(1, orderId);
 
-            return preparedStatement.executeUpdate() > 0;
+            preparedStatement.executeUpdate();
         }
     }
 
