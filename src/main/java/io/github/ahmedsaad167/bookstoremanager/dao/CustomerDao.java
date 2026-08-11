@@ -11,6 +11,7 @@ import java.sql.ResultSet;
 
 import io.github.ahmedsaad167.bookstoremanager.database.DatabaseManager;
 import io.github.ahmedsaad167.bookstoremanager.model.Customer;
+import io.github.ahmedsaad167.bookstoremanager.search.CustomerSearchCriteria;
 
 public class CustomerDao {
     private static final List<String> SEARCHABLE_FIELDS = List.of(
@@ -123,6 +124,86 @@ public class CustomerDao {
 
     public List<Customer> findByAddress(String address) throws SQLException {
         return findByField("address", address);
+    }
+
+    public List<Customer> search(CustomerSearchCriteria criteria) throws SQLException {
+        if (criteria == null) {
+            throw new IllegalArgumentException("Search criteria cannot be null.");
+        }
+
+        StringBuilder sql = new StringBuilder("""
+            SELECT * FROM "customers"
+            WHERE 1 = 1
+        """);
+
+        List<Object> parameters = new ArrayList<>();
+
+        if (criteria.getName() != null && !criteria.getName().isBlank()) {
+            sql.append("""
+                AND "name" LIKE ?
+            """);
+            parameters.add("%" + criteria.getName().trim() + "%");
+        }
+        if (criteria.getUsername() != null && !criteria.getUsername().isBlank()) {
+            sql.append("""
+                AND "username" LIKE ?
+            """);
+
+            parameters.add("%" + criteria.getUsername().trim() + "%");
+        }
+
+        if (criteria.getPhone() != null && !criteria.getPhone().isBlank()) {
+            sql.append("""
+                AND "phone" LIKE ?
+            """);
+
+            parameters.add("%" + criteria.getPhone().trim() + "%");
+        }
+
+        if (criteria.getEmail() != null && !criteria.getEmail().isBlank()) {
+            sql.append("""
+                AND "email" LIKE ?
+            """);
+
+            parameters.add("%" + criteria.getEmail().trim() + "%");
+        }
+
+        if (criteria.getAddress() != null && !criteria.getAddress().isBlank()) {
+            sql.append("""
+                AND "address" LIKE ?
+            """);
+
+            parameters.add("%" + criteria.getAddress().trim() + "%");
+        }
+
+        if (criteria.getNotes() != null && !criteria.getNotes().isBlank()) {
+            sql.append("""
+                AND "notes" LIKE ?
+            """);
+
+            parameters.add("%" + criteria.getNotes().trim() + "%");
+        }
+
+        sql.append("""
+            ORDER BY "name";
+        """);
+
+        List<Customer> customers = new ArrayList<>();
+
+        try (Connection connection = DatabaseManager.getConnection()) {
+            try (PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
+                for (int i = 0; i < parameters.size(); i++) {
+                    preparedStatement.setObject(i + 1, parameters.get(i));
+                }
+
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    while (resultSet.next()) {
+                        customers.add(mapRowToCustomer(resultSet));
+                    }
+                }
+            }
+        }
+        return customers;
     }
 
     public boolean update(Customer customer) throws SQLException {

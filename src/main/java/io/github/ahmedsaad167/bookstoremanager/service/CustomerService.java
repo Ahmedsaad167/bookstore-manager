@@ -6,6 +6,7 @@ import java.sql.SQLException;
 
 import io.github.ahmedsaad167.bookstoremanager.dao.CustomerDao;
 import io.github.ahmedsaad167.bookstoremanager.model.Customer;
+import io.github.ahmedsaad167.bookstoremanager.search.CustomerSearchCriteria;
 
 public class CustomerService {
     private final CustomerDao customerDao;
@@ -40,6 +41,7 @@ public class CustomerService {
     public Customer getCustomerById(int id) throws SQLException {
         checkId(id);
 
+        
         return customerDao.findById(id);
     }
 
@@ -77,6 +79,12 @@ public class CustomerService {
         return customerDao.findByAddress(address);
     }
 
+    public List<Customer> search(CustomerSearchCriteria criteria) throws SQLException {
+        validateCustomerSearchCriteria(criteria);
+
+        return customerDao.search(criteria);
+    }
+
     private static void validateCustomer(Customer customer) {
         if (customer == null) {
             throw new IllegalArgumentException("Customer cannot be null.");
@@ -106,4 +114,13 @@ public class CustomerService {
             throw new IllegalArgumentException("Search " + fieldName + " cannot be null or blank.");
         }
     }
+
+    private void validateCustomerSearchCriteria(CustomerSearchCriteria criteria) {
+
+        if (criteria == null) {
+            throw new IllegalArgumentException(
+                "Search criteria cannot be null."
+            );
+        }
+    }   
 }
