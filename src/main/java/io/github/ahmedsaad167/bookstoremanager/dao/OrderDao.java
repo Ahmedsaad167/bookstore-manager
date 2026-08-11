@@ -12,6 +12,7 @@ import java.sql.Statement;
 
 import io.github.ahmedsaad167.bookstoremanager.model.Order;
 import io.github.ahmedsaad167.bookstoremanager.model.OrderStatus;
+import io.github.ahmedsaad167.bookstoremanager.search.OrderSearchCriteria;
 
 public class OrderDao {
     
@@ -72,6 +73,140 @@ public class OrderDao {
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             try(ResultSet resultSet = preparedStatement.executeQuery()) {
+                while (resultSet.next()) {
+                    orders.add(mapRowToOrder(resultSet));
+                }
+            }
+        }
+        return orders;
+    }
+
+    public List<Order> search(Connection connection, OrderSearchCriteria criteria) throws SQLException {
+        if (criteria == null) {
+            throw new IllegalArgumentException("Search criteria cannot be null.");
+        }
+
+        StringBuilder sql = new StringBuilder("""
+            SELECT DISTINCT o.*
+            FROM "orders" o
+            JOIN "customers" c ON c."id" = o."customer_id"
+            LEFT JOIN "order_items" oi ON oi."order_id" = o."id"
+            LEFT JOIN "books" b ON b."id" = oi."book_id"
+            WHERE 1 = 1
+        """);
+        
+        List<Object> parameters = new ArrayList<>();
+
+        if (criteria.getOrderId() != null) {
+            sql.append("""
+                AND o."id" = ?
+            """);
+
+            parameters.add(criteria.getOrderId());
+        }
+
+        if (criteria.getCustomerName() != null
+                && !criteria.getCustomerName().isBlank()) {
+
+            sql.append("""
+                AND c."name" LIKE ?
+            """);
+
+            parameters.add(
+                "%" + criteria.getCustomerName().trim() + "%"
+            );
+        }
+
+        if (criteria.getCustomerPhone() != null
+                && !criteria.getCustomerPhone().isBlank()) {
+
+            sql.append("""
+                AND c."phone" LIKE ?
+            """);
+
+            parameters.add(
+                "%" + criteria.getCustomerPhone().trim() + "%"
+            );
+        }
+
+        if (criteria.getBookId() != null) {
+            sql.append("""
+                AND b."id" = ?
+            """);
+
+            parameters.add(criteria.getBookId());
+        }
+
+        if (criteria.getBookTitle() != null
+                && !criteria.getBookTitle().isBlank()) {
+
+            sql.append("""
+                AND b."title" LIKE ?
+            """);
+
+            parameters.add(
+                "%" + criteria.getBookTitle().trim() + "%"
+            );
+        }
+
+        if (criteria.getOrderStatus() != null) {
+            sql.append("""
+                AND o."order_status" = ?
+            """);
+
+            parameters.add(
+                criteria.getOrderStatus().name()
+            );
+        }
+
+        if (criteria.getMinDate() != null) {
+            sql.append("""
+                AND o."order_date" >= ?
+            """);
+
+            parameters.add(
+                criteria.getMinDate().toString()
+            );
+        }
+
+        if (criteria.getMaxDate() != null) {
+            sql.append("""
+                AND o."order_date" <= ?
+            """);
+
+            parameters.add(
+                criteria.getMaxDate().toString()
+            );
+        }
+
+        if (criteria.getMinPrice() != null) {
+            sql.append("""
+                AND o."price_after_discount" >= ?
+            """);
+
+            parameters.add(criteria.getMinPrice());
+        }
+
+        if (criteria.getMaxPrice() != null) {
+            sql.append("""
+                AND o."price_after_discount" <= ?
+            """);
+
+            parameters.add(criteria.getMaxPrice());
+        }
+
+        sql.append("""
+            ORDER BY o."order_date" DESC;
+        """);
+
+        List<Order> orders = new ArrayList<>();
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
+            for (int i = 0; i < parameters.size(); i++) {
+                preparedStatement.setObject(i + 1, parameters.get(i));
+            }
+
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 while (resultSet.next()) {
                     orders.add(mapRowToOrder(resultSet));
                 }
