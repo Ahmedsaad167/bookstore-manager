@@ -2,9 +2,12 @@ package io.github.ahmedsaad167.bookstoremanager.service;
 
 import java.util.List;
 import java.sql.SQLException;
+import java.sql.Connection;
 
 import io.github.ahmedsaad167.bookstoremanager.dao.BookDao;
+import io.github.ahmedsaad167.bookstoremanager.database.DatabaseManager;
 import io.github.ahmedsaad167.bookstoremanager.model.Book;
+import io.github.ahmedsaad167.bookstoremanager.search.BookSearchCriteria;
 
 
 public class BookService {
@@ -77,19 +80,49 @@ public class BookService {
         return bookDao.findByPublisher(publisher);
     }
 
+    public List<Book> search(BookSearchCriteria criteria) throws SQLException {
+        validateSearchCriteria(criteria);
+
+        try (Connection connection = DatabaseManager.getConnection()) {
+            return bookDao.search(connection, criteria);
+        }
+    }
+    
     private void validateBookForSale(Book book) {
         if (book == null) {
             throw new IllegalArgumentException("Book cannot be null.");
         }
-
+        
         if (book.getSellingPrice() < book.getPurchasePrice()) {
             throw new IllegalArgumentException("Selling price cannot be lower than purchase price.");
         }
     }
-
+    
     private void validateSearchText(String value, String fieldName) {
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException("Search " + fieldName + " cannot be null or blank.");
+        }
+    }
+    
+    private void validateSearchCriteria(BookSearchCriteria criteria) {
+        if (criteria == null) {
+            throw new IllegalArgumentException("Search criteria cannot be null.");
+        }
+        
+        if (criteria.getMinSellingPrice() != null && criteria.getMinSellingPrice() < 0) {
+            throw new IllegalArgumentException("Minimum selling price cannot be negative.");
+        }
+        
+        if (criteria.getMaxSellingPrice() != null && criteria.getMaxSellingPrice() < 0) {
+            throw new IllegalArgumentException("Maximum selling price cannot be negative.");
+        }
+        
+        if (criteria.getMinSellingPrice() != null && criteria.getMaxSellingPrice() != null && criteria.getMinSellingPrice() > criteria.getMaxSellingPrice()) {
+            throw new IllegalArgumentException("Minimum selling price cannot be greater than maximum selling price.");
+        }
+        
+        if (criteria.getPublicationYear() != null && criteria.getPublicationYear() <= 0) {
+            throw new IllegalArgumentException("Publication year must be greater than zero.");
         }
     }
 }
