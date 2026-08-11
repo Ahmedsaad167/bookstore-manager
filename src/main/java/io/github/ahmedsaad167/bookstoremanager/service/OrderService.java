@@ -113,7 +113,11 @@ public class OrderService {
 
                 orderItemDao.deleteByOrderId(connection, order.getId());
 
-                orderDao.update(connection, order);
+                boolean updated = orderDao.update(connection, order);
+                
+                if (!updated) {
+                    throw new SQLException("Failed to update order: " + order.getId());
+                }
 
                 saveOrderItems(connection, order, order.getId());
 
@@ -123,6 +127,39 @@ public class OrderService {
 
                 return true;
 
+            } catch (SQLException | RuntimeException e) {
+                connection.rollback();
+                throw e;
+            } finally {
+                connection.setAutoCommit(true);
+            }
+        }
+    }
+
+    public boolean deleteOrder(int id) throws SQLException {
+        validateOrderId(id);
+        try (Connection connection = DatabaseManager.getConnection()) {
+            try {
+                connection.setAutoCommit(false);
+                Order order = orderDao.findById(connection, id);
+                if (order == null) {
+                    return false;
+                }
+                loadOrderItems(connection, order);
+
+                restoreOldStock(connection, order);
+
+                orderItemDao.deleteByOrderId(connection, id);
+
+                boolean deleted = orderDao.deleteById(connection, id);
+
+                if (!deleted) {
+                    throw new SQLException("Failed to delete order: " + id);
+                }
+
+                connection.commit();
+
+                return true;
             } catch (SQLException | RuntimeException e) {
                 connection.rollback();
                 throw e;
