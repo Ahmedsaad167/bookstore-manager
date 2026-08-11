@@ -55,23 +55,14 @@ public class OrderDao {
 
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 if (resultSet.next()) {
-                    return mapRowTOrder(resultSet);
+                    return mapRowToOrder(resultSet);
                 }
             }
         }
         return null;
     }
     
-    public Order findByIdWithItems(Connection connection, int id) throws SQLException {
-        Order order = findById(connection, id);
 
-        if (order == null) {
-            return null;
-        }
-
-        return order;
-    }
-    
     public List<Order> findAll(Connection connection) throws SQLException {
         String sql = """
             SELECT * FROM "orders";
@@ -82,7 +73,7 @@ public class OrderDao {
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             try(ResultSet resultSet = preparedStatement.executeQuery()) {
                 while (resultSet.next()) {
-                    orders.add(mapRowTOrder(resultSet));
+                    orders.add(mapRowToOrder(resultSet));
                 }
             }
         }
@@ -133,18 +124,28 @@ public class OrderDao {
         preparedStatement.setString(7, order.getNotes());
     }
 
-    private static Order mapRowTOrder(ResultSet resultSet) throws SQLException {
+    private static Order mapRowToOrder(ResultSet resultSet) throws SQLException {
         int id = resultSet.getInt("id");
         int customerId = resultSet.getInt("customer_id");
 
         LocalDateTime orderDate = LocalDateTime.parse(resultSet.getString("order_date"));
 
         OrderStatus orderStatus = OrderStatus.valueOf(resultSet.getString("order_status"));
-
+        double totalPrice = resultSet.getDouble("total_price");
         double discount = resultSet.getDouble("discount");
+        double priceAfterDiscount = resultSet.getDouble("price_after_discount");
 
         String notes = resultSet.getString("notes");
 
-        return new Order(id, customerId, orderDate, orderStatus, discount, notes);
+        return new Order(
+            id,
+            customerId,
+            orderDate,
+            orderStatus,
+            totalPrice,
+            discount,
+            priceAfterDiscount,
+            notes
+        );
     }
 }
