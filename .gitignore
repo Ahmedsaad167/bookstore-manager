@@ -1,6 +1,14 @@
 # Maven build output
 target/
 
+# SQLite database
+*.db
+*.db-shm
+*.db-wal
+
+# Backups
+backup/
+
 # Java compiled files
 *.class
 
