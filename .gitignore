@@ -7,7 +7,7 @@ target/
 *.db-wal
 
 # Backups
-backup/
+/backup/
 
 # Java compiled files
 *.class
