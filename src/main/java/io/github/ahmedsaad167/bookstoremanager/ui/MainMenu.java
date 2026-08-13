@@ -5,9 +5,11 @@ import java.util.Scanner;
 public class MainMenu {
     
     private final Scanner scanner;
+    private final BookMenu bookMenu;
 
-    public MainMenu(Scanner scanner) {
+    public MainMenu(Scanner scanner, BookMenu bookMenu) {
         this.scanner = scanner;
+        this.bookMenu = bookMenu;
     }
 
     public void show() {
@@ -18,8 +20,8 @@ public class MainMenu {
             String choice = scanner.nextLine().trim();
 
             switch (choice) {
-                case "1" -> System.out.println("Book Management");
-                
+                case "1" -> bookMenu.show();
+
                 case "2" -> System.out.println("Customer Management");
 
                 case "3" -> System.out.println("Order Management");
