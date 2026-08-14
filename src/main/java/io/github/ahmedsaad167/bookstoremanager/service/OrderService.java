@@ -12,6 +12,7 @@ import io.github.ahmedsaad167.bookstoremanager.model.Book;
 import io.github.ahmedsaad167.bookstoremanager.dao.BookDao;
 import io.github.ahmedsaad167.bookstoremanager.dao.OrderDao;
 import io.github.ahmedsaad167.bookstoremanager.model.OrderItem;
+import io.github.ahmedsaad167.bookstoremanager.model.OrderStatus;
 import io.github.ahmedsaad167.bookstoremanager.dao.OrderItemDao;
 import io.github.ahmedsaad167.bookstoremanager.database.DatabaseManager;
 import io.github.ahmedsaad167.bookstoremanager.model.Order;
@@ -44,8 +45,10 @@ public class OrderService {
                 int orderId = orderDao.save(connection, order);
 
                 saveOrderItems(connection, order, orderId);
-
-                decreaseBooksStock(connection, order);
+                
+                if (reservesStock(order.getOrderStatus())) {
+                    decreaseBooksStock(connection, order);
+                }
 
                 connection.commit();
                 
@@ -119,7 +122,12 @@ public class OrderService {
 
                 loadOrderItems(connection, oldOrder);
 
-                restoreOldStock(connection, oldOrder);
+                boolean oldReservesStock = reservesStock(oldOrder.getOrderStatus());
+                boolean newReservesStock = reservesStock(order.getOrderStatus());
+                
+                if (oldReservesStock) {
+                    restoreOldStock(connection, oldOrder);
+                }
 
                 validateCustomerExists(connection, order.getCustomerId());
 
@@ -135,7 +143,9 @@ public class OrderService {
 
                 saveOrderItems(connection, order, order.getId());
 
-                decreaseBooksStock(connection, order);
+                if (newReservesStock) {
+                    decreaseBooksStock(connection, order);
+                }
 
                 connection.commit();
 
@@ -161,7 +171,9 @@ public class OrderService {
                 }
                 loadOrderItems(connection, order);
 
-                restoreOldStock(connection, order);
+                if (reservesStock(order.getOrderStatus())) {
+                    restoreOldStock(connection, order);
+                }
 
                 orderItemDao.deleteByOrderId(connection, id);
 
@@ -238,7 +250,7 @@ public class OrderService {
                 throw new IllegalArgumentException("Book not found: " + item.getBookId());
             }
 
-            if (book.getStockQuantity() < item.getQuantity()) {
+            if (reservesStock(order.getOrderStatus()) && book.getStockQuantity() < item.getQuantity()) {
                 throw new IllegalArgumentException("Insufficient stock for book: " + book.getTitle());
             }
 
@@ -297,6 +309,9 @@ public class OrderService {
         }
     }
 
+    private boolean reservesStock(OrderStatus status) {
+        return status == OrderStatus.PENDING || status == OrderStatus.COMPLETED;
+    }
     private void restoreOldStock(
         Connection connection,
         Order oldOrder) throws SQLException {
