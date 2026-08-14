@@ -6,10 +6,12 @@ public class MainMenu {
     
     private final Scanner scanner;
     private final BookMenu bookMenu;
+    private final CustomerMenu customerMenu;
 
-    public MainMenu(Scanner scanner, BookMenu bookMenu) {
+    public MainMenu(Scanner scanner, BookMenu bookMenu, CustomerMenu customerMenu) {
         this.scanner = scanner;
         this.bookMenu = bookMenu;
+        this.customerMenu = customerMenu;
     }
 
     public void show() {
@@ -22,7 +24,7 @@ public class MainMenu {
             switch (choice) {
                 case "1" -> bookMenu.show();
 
-                case "2" -> System.out.println("Customer Management");
+                case "2" -> customerMenu.show();
 
                 case "3" -> System.out.println("Order Management");
 
