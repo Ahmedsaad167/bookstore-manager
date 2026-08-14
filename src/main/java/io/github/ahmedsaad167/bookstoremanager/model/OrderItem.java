@@ -35,11 +35,19 @@ public class OrderItem {
     }
 
     public void setQuantity(int quantity) {
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("Order item quantity must be greater than zero.");
+        }
+        
         this.quantity = quantity;
         recalculateTotalPrice();
     }
     
     public void setUnitPrice(double unitPrice) {
+        if (unitPrice < 0) {
+            throw new IllegalArgumentException("Unit price cannot be negative.");
+        }
+        
         this.unitPrice = unitPrice;
         recalculateTotalPrice();
     }
