@@ -4,6 +4,7 @@ import java.sql.SQLException;
 import java.util.Scanner;
 
 import io.github.ahmedsaad167.bookstoremanager.dao.BookDao;
+import io.github.ahmedsaad167.bookstoremanager.dao.OrderDao;
 import io.github.ahmedsaad167.bookstoremanager.service.BookService;
 import io.github.ahmedsaad167.bookstoremanager.database.DatabaseInitializer;
 import io.github.ahmedsaad167.bookstoremanager.ui.BookMenu;
@@ -19,7 +20,8 @@ public class Main {
             Scanner scanner = new Scanner(System.in);
 
             BookDao bookDao = new BookDao();
-            BookService bookService = new BookService(bookDao);
+            OrderDao orderDao = new OrderDao();
+            BookService bookService = new BookService(bookDao, orderDao);
             BookMenu bookMenu = new BookMenu(scanner, bookService);
             
             MainMenu mainMenu = new MainMenu(scanner, bookMenu);

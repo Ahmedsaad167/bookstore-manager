@@ -35,9 +35,9 @@ public class BookMenu {
 
                     case "2" -> addBook();
 
-                    case "3" -> System.out.println("Update Book - Coming soon");
+                    case "3" -> updateBook();
 
-                    case "4" -> System.out.println("Delete Book - Coming soon");
+                    case "4" -> deleteBook();
 
                     case "5" -> System.out.println("Search Books - Coming soon");
 
@@ -77,6 +77,229 @@ public class BookMenu {
         }
 
         for (Book book : books) {
+            showRow(book);
+        }
+    }
+    
+    private void addBook() throws SQLException {
+        
+        System.out.println();
+        System.out.println("========== Add Book ==========");
+        
+        System.out.print("Title: ");
+        String title = scanner.nextLine().trim();
+        
+        System.out.print("Category: ");
+        String category = scanner.nextLine().trim();
+        
+        System.out.print("Author: ");
+        String author = scanner.nextLine().trim();
+        
+        System.out.print("Purchase price: ");
+        double purchasePrice = Double.parseDouble(scanner.nextLine().trim());
+        
+        System.out.print("Selling price: ");
+        double sellingPrice = Double.parseDouble(scanner.nextLine().trim());
+        
+        System.out.print("Stock quantity: ");
+        int stockQuantity = Integer.parseInt(scanner.nextLine().trim());
+        
+        MaterialType materialType = readMaterialType();
+        
+        System.out.print("Publisher: ");
+        String publisher = scanner.nextLine().trim();
+        
+        System.out.print("Publication year: ");
+        String publicationYearInput = scanner.nextLine().trim();
+        
+        int publicationYear = publicationYearInput.isBlank()
+        ? 0
+        : Integer.parseInt(publicationYearInput);
+        
+        System.out.print("ISBN: ");
+        String isbn = scanner.nextLine().trim();
+        
+        AgeGroup ageGroup = readAgeGroup();
+        
+        System.out.print("Notes: ");
+        String notes = scanner.nextLine().trim();
+        
+        Book book = new Book(
+            title,
+            category,
+            author,
+            purchasePrice,
+            sellingPrice,
+            stockQuantity,
+            materialType,
+            ageGroup
+        );
+        
+        book.setPublisher(publisher);
+        book.setPublicationYear(publicationYear);
+        book.setIsbn(isbn);
+        book.setNotes(notes);
+        
+        int bookId = bookService.addBook(book);
+        
+        System.out.println();
+        System.out.println("Book added successfully.");
+        System.out.println("Book ID: " + bookId);
+    }
+    
+    private MaterialType readMaterialType() {
+        
+        MaterialType[] types = MaterialType.values();
+        
+        System.out.println("Material type:");
+        
+        for (int i = 0; i < types.length; i++) {
+            System.out.println(
+                (i + 1) + ". " + types[i].getDisplayName()
+            );
+        }
+        
+        while (true) {
+            
+            System.out.print("Choose: ");
+            
+            try {
+                
+                int choice = Integer.parseInt(
+                    scanner.nextLine().trim()
+                );
+                
+                if (choice >= 1 && choice <= types.length) {
+                    return types[choice - 1];
+                }
+                
+            } catch (NumberFormatException ignored) {
+            }
+            
+            System.out.println("Invalid choice.");
+        }
+    }
+    
+    private AgeGroup readAgeGroup() {
+        
+        AgeGroup[] groups = AgeGroup.values();
+        
+        System.out.println("Age group:");
+        
+        for (int i = 0; i < groups.length; i++) {
+            System.out.println(
+                (i + 1) + ". " + groups[i].getDisplayName()
+            );
+        }
+        
+        while (true) {
+            
+            System.out.print("Choose: ");
+            
+            try {
+                
+                int choice = Integer.parseInt(
+                        scanner.nextLine().trim()
+                    );
+                    
+                    if (choice >= 1 && choice <= groups.length) {
+                        return groups[choice - 1];
+                    }
+                    
+                } catch (NumberFormatException ignored) {
+                }
+                
+                System.out.println("Invalid choice.");
+            }
+        }
+        
+        private void updateBook() throws SQLException {
+            
+            System.out.println();
+            System.out.println("========== Update Book ==========");
+            
+            System.out.println("Book ID: ");
+            int id = Integer.parseInt(scanner.nextLine().trim());
+            
+            Book book = bookService.getBookById(id);
+            
+            if (book == null) {
+                System.out.println("Book not found.");
+                return;
+            }
+            
+            System.out.println();
+            showRow(book);
+
+            System.out.println("Enter new values:");
+
+            System.out.print("Title: ");
+            book.setTitle(scanner.nextLine().trim());
+
+            System.out.print("Category: ");
+            book.setCategory(scanner.nextLine().trim());
+
+            System.out.print("Author: ");
+            book.setAuthor(scanner.nextLine().trim());
+
+            System.out.print("Purchase price: ");
+            book.setPurchasePrice(
+                    Double.parseDouble(scanner.nextLine().trim())
+            );
+
+            System.out.print("Selling price: ");
+            book.setSellingPrice(
+                    Double.parseDouble(scanner.nextLine().trim())
+            );
+
+            MaterialType materialType = readMaterialType();
+            book.setMaterialType(materialType);
+
+            System.out.print("Publisher: ");
+            book.setPublisher(scanner.nextLine().trim());
+
+            System.out.print("Publication year: ");
+            book.setPublicationYear(
+                    Integer.parseInt(scanner.nextLine().trim())
+            );
+
+            System.out.print("ISBN: ");
+            book.setIsbn(scanner.nextLine().trim());
+
+            AgeGroup ageGroup = readAgeGroup();
+            book.setAgeGroup(ageGroup);
+
+            System.out.print("Notes: ");
+            book.setNotes(scanner.nextLine().trim());
+
+            boolean updated = bookService.updateBook(book);
+            
+            System.out.println();
+            System.out.println(updated ? "Book updated successfully." : "Book was not updated");
+
+        }
+
+        private void deleteBook() throws SQLException {
+            System.out.println();
+            System.out.println("========== Delete Book ==========");
+
+            System.out.print("Book ID: ");
+            int id = Integer.parseInt(scanner.nextLine().trim());
+
+            System.out.print("Are you sure you want to delete this book? (y/n): ");
+            String confirmation = scanner.nextLine().trim();
+
+            if (!confirmation.equalsIgnoreCase("y")) {
+                System.out.println("Delete cancelled.");
+                return;
+            }
+
+            boolean deleted = bookService.deleteBook(id);
+
+            System.out.println(deleted ? "Book deleted successfully." : "Book not found.");
+        }
+        
+        private void showRow(Book book) {
             System.out.print(book.getId());
             System.out.print(" | ");
             System.out.print(book.getTitle());
@@ -91,7 +314,7 @@ public class BookMenu {
             System.out.print(" | ");
             System.out.print(book.getStockQuantity());
             System.out.print(" | ");
-            System.out.print(book.getMaterialType());
+            System.out.print(book.getMaterialType().getDisplayName());
             System.out.print(" | ");
             System.out.print(book.getPublisher());
             System.out.print(" | ");
@@ -99,142 +322,11 @@ public class BookMenu {
             System.out.print(" | ");
             System.out.print(book.getIsbn());
             System.out.print(" | ");
-            System.out.print(book.getAgeGroup());
+            System.out.print(book.getAgeGroup().getDisplayName());
             System.out.print(" | ");
             System.out.print(book.getNotes());
             System.out.println();
+            
         }
     }
-
-    private void addBook() throws SQLException {
-
-        System.out.println();
-        System.out.println("========== Add Book ==========");
-
-        System.out.print("Title: ");
-        String title = scanner.nextLine().trim();
-
-        System.out.print("Category: ");
-        String category = scanner.nextLine().trim();
-
-        System.out.print("Author: ");
-        String author = scanner.nextLine().trim();
-
-        System.out.print("Purchase price: ");
-        double purchasePrice = Double.parseDouble(scanner.nextLine().trim());
-
-        System.out.print("Selling price: ");
-        double sellingPrice = Double.parseDouble(scanner.nextLine().trim());
-
-        System.out.print("Stock quantity: ");
-        int stockQuantity = Integer.parseInt(scanner.nextLine().trim());
-
-        MaterialType materialType = readMaterialType();
-
-        System.out.print("Publisher: ");
-        String publisher = scanner.nextLine().trim();
-
-        System.out.print("Publication year: ");
-        String publicationYearInput = scanner.nextLine().trim();
-
-        int publicationYear = publicationYearInput.isBlank()
-                ? 0
-                : Integer.parseInt(publicationYearInput);
-
-        System.out.print("ISBN: ");
-        String isbn = scanner.nextLine().trim();
-
-        AgeGroup ageGroup = readAgeGroup();
-
-        System.out.print("Notes: ");
-        String notes = scanner.nextLine().trim();
-
-        Book book = new Book(
-                title,
-                category,
-                author,
-                purchasePrice,
-                sellingPrice,
-                stockQuantity,
-                materialType,
-                ageGroup
-        );
-
-        book.setPublisher(publisher);
-        book.setPublicationYear(publicationYear);
-        book.setIsbn(isbn);
-        book.setNotes(notes);
-
-        int bookId = bookService.addBook(book);
-
-        System.out.println();
-        System.out.println("Book added successfully.");
-        System.out.println("Book ID: " + bookId);
-    }
-
-    private MaterialType readMaterialType() {
-
-        MaterialType[] types = MaterialType.values();
-
-        System.out.println("Material type:");
-
-        for (int i = 0; i < types.length; i++) {
-            System.out.println(
-                    (i + 1) + ". " + types[i].getDisplayName()
-            );
-        }
-
-        while (true) {
-
-            System.out.print("Choose: ");
-
-            try {
-
-                int choice = Integer.parseInt(
-                        scanner.nextLine().trim()
-                );
-
-                if (choice >= 1 && choice <= types.length) {
-                    return types[choice - 1];
-                }
-
-            } catch (NumberFormatException ignored) {
-            }
-
-            System.out.println("Invalid choice.");
-        }
-    }
-
-    private AgeGroup readAgeGroup() {
-
-        AgeGroup[] groups = AgeGroup.values();
-
-        System.out.println("Age group:");
-
-        for (int i = 0; i < groups.length; i++) {
-            System.out.println(
-                    (i + 1) + ". " + groups[i].getDisplayName()
-            );
-        }
-
-        while (true) {
-
-            System.out.print("Choose: ");
-
-            try {
-
-                int choice = Integer.parseInt(
-                        scanner.nextLine().trim()
-                );
-
-                if (choice >= 1 && choice <= groups.length) {
-                    return groups[choice - 1];
-                }
-
-            } catch (NumberFormatException ignored) {
-            }
-
-            System.out.println("Invalid choice.");
-        }
-    }
-}
+    

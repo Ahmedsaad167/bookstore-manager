@@ -248,6 +248,24 @@ public class OrderDao {
         }
     }
 
+    public boolean existsByBookId(Connection connection, int bookId) throws SQLException {
+        String sql = """
+            SELECT EXISTS (
+                SELECT 1
+                FROM "order_items"
+                WHERE "book_id" = ? ;
+            )
+        """;
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setInt(1, bookId);
+
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                return resultSet.next() && resultSet.getBoolean(1);
+            }
+        }
+    }
+
 
     private static void mapOrderToRow(PreparedStatement preparedStatement, Order order) throws SQLException {
         preparedStatement.setInt(1, order.getCustomerId());
