@@ -37,7 +37,7 @@ public class BookMenu {
 
                     case "3" -> updateBook();
 
-                    case "4" -> System.out.println("Delete Book - Coming soon");
+                    case "4" -> deleteBook();
 
                     case "5" -> System.out.println("Search Books - Coming soon");
 
@@ -277,6 +277,26 @@ public class BookMenu {
             System.out.println();
             System.out.println(updated ? "Book updated successfully." : "Book was not updated");
 
+        }
+
+        private void deleteBook() throws SQLException {
+            System.out.println();
+            System.out.println("========== Delete Book ==========");
+
+            System.out.print("Book ID: ");
+            int id = Integer.parseInt(scanner.nextLine().trim());
+
+            System.out.print("Are you sure you want to delete this book? (y/n): ");
+            String confirmation = scanner.nextLine().trim();
+
+            if (!confirmation.equalsIgnoreCase("y")) {
+                System.out.println("Delete cancelled.");
+                return;
+            }
+
+            boolean deleted = bookService.deleteBook(id);
+
+            System.out.println(deleted ? "Book deleted successfully." : "Book not found.");
         }
         
         private void showRow(Book book) {

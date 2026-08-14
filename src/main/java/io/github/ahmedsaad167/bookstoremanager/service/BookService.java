@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.sql.Connection;
 
 import io.github.ahmedsaad167.bookstoremanager.dao.BookDao;
+import io.github.ahmedsaad167.bookstoremanager.dao.OrderDao;
 import io.github.ahmedsaad167.bookstoremanager.database.DatabaseManager;
 import io.github.ahmedsaad167.bookstoremanager.model.Book;
 import io.github.ahmedsaad167.bookstoremanager.search.BookSearchCriteria;
@@ -12,9 +13,11 @@ import io.github.ahmedsaad167.bookstoremanager.search.BookSearchCriteria;
 
 public class BookService {
     private final BookDao bookDao;
+    private final OrderDao orderDao;
 
-    public BookService(BookDao bookDao) {
+    public BookService(BookDao bookDao, OrderDao orderDao) {
         this.bookDao = bookDao;
+        this.orderDao = orderDao;
     }
 
     public int addBook(Book book) throws SQLException {
@@ -37,9 +40,12 @@ public class BookService {
         if (id <= 0) {
             throw new IllegalArgumentException("Invalid book ID.");
         }
-        // if (orderDao.existsByBookId(id)) {
-        //     throw new IllegalArgumentException("Cannot delete a book that has existing orders.");
-        // }
+
+        try (Connection connection = DatabaseManager.getConnection()) {
+            if (orderDao.existsByBookId(connection, id)) {
+                throw new IllegalArgumentException("Cannot delete a book that has existing orders.");
+            }
+        }
 
         return bookDao.deleteById(id);
     }
