@@ -7,6 +7,7 @@ import java.util.Scanner;
 import io.github.ahmedsaad167.bookstoremanager.model.AgeGroup;
 import io.github.ahmedsaad167.bookstoremanager.model.Book;
 import io.github.ahmedsaad167.bookstoremanager.model.MaterialType;
+import io.github.ahmedsaad167.bookstoremanager.search.BookSearchCriteria;
 import io.github.ahmedsaad167.bookstoremanager.service.BookService;
 
 public class BookMenu {
@@ -39,7 +40,7 @@ public class BookMenu {
 
                     case "4" -> deleteBook();
 
-                    case "5" -> System.out.println("Search Books - Coming soon");
+                    case "5" -> searchBooks();
 
                     case "0" -> running = false;
                     
@@ -206,12 +207,12 @@ public class BookMenu {
                         return groups[choice - 1];
                     }
                     
-                } catch (NumberFormatException ignored) {
-                }
-                
+            } catch (NumberFormatException ignored) {
                 System.out.println("Invalid choice.");
             }
+            
         }
+    }
         
         private void updateBook() throws SQLException {
             
@@ -297,6 +298,328 @@ public class BookMenu {
             boolean deleted = bookService.deleteBook(id);
 
             System.out.println(deleted ? "Book deleted successfully." : "Book not found.");
+        }
+
+        private void searchBooks() throws SQLException {
+
+            System.out.println();
+            System.out.println("========== Search Books ==========");
+            System.out.println("1. Search by title");
+            System.out.println("2. Search by category");
+            System.out.println("3. Search by author");
+            System.out.println("4. Search by publisher");
+            System.out.println("5. Advanced search");
+            System.out.println("0. Back");
+            System.out.print("Choose an option: ");
+
+            String choice = scanner.nextLine().trim();
+
+            switch (choice) {
+                case "1" -> searchByTitle();
+                case "2" -> searchByCategory();
+                case "3" -> searchByAuthor();
+                case "4" -> searchByPublisher();
+                case "5" -> advancedSearch();
+                case "0" -> {
+                    return;
+                }
+                default -> System.out.println("Invalid choice.");
+            }
+        }
+
+        private void searchByTitle() throws SQLException {
+
+            System.out.print("Enter title: ");
+            String title = scanner.nextLine().trim();
+
+            BookSearchCriteria criteria = new BookSearchCriteria();
+            criteria.setTitle(title);
+
+            List<Book> books = bookService.search(criteria);
+
+            showSearchResults(books);
+        }
+
+        private void searchByCategory() throws SQLException {
+
+            System.out.print("Enter category: ");
+            String category = scanner.nextLine().trim();
+
+            BookSearchCriteria criteria = new BookSearchCriteria();
+            criteria.setCategory(category);
+
+            List<Book> books = bookService.search(criteria);
+
+            showSearchResults(books);
+        }
+
+        private void searchByAuthor() throws SQLException {
+
+            System.out.print("Enter author: ");
+            String author = scanner.nextLine().trim();
+
+            BookSearchCriteria criteria = new BookSearchCriteria();
+            criteria.setAuthor(author);
+
+            List<Book> books = bookService.search(criteria);
+
+            showSearchResults(books);
+        }
+
+        private void searchByPublisher() throws SQLException {
+
+            System.out.print("Enter publisher: ");
+            String publisher = scanner.nextLine().trim();
+
+            BookSearchCriteria criteria = new BookSearchCriteria();
+            criteria.setPublisher(publisher);
+
+            List<Book> books = bookService.search(criteria);
+
+            showSearchResults(books);
+        }
+
+        private void advancedSearch() throws SQLException {
+
+            System.out.println();
+            System.out.println("========== Advanced Book Search ==========");
+
+            BookSearchCriteria criteria = new BookSearchCriteria();
+
+            criteria.setTitle(
+                readOptionalString("Title")
+            );
+
+            criteria.setCategory(
+                readOptionalString("Category")
+            );
+
+            criteria.setAuthor(
+                readOptionalString("Author")
+            );
+
+            criteria.setPublisher(
+                readOptionalString("Publisher")
+            );
+
+            criteria.setIsbn(
+                readOptionalString("ISBN")
+            );
+
+            criteria.setNotes(
+                readOptionalString("Notes")
+            );
+
+            criteria.setMaterialType(
+                readOptionalMaterialType()
+            );
+
+            criteria.setAgeGroup(
+                readOptionalAgeGroup()
+            );
+
+            criteria.setPublicationYear(
+                readOptionalInteger("Publication year")
+            );
+
+            criteria.setMinSellingPrice(
+                readOptionalDouble("Minimum selling price")
+            );
+
+            criteria.setMaxSellingPrice(
+                readOptionalDouble("Maximum selling price")
+            );
+
+            criteria.setAvailable(
+                readOptionalAvailable()
+            );
+
+            List<Book> books = bookService.search(criteria);
+
+            showSearchResults(books);
+        }
+
+        private String readOptionalString(String fieldName) {
+
+            System.out.print(fieldName + " (Enter to skip): ");
+
+            String value = scanner.nextLine().trim();
+
+            return value.isBlank() ? null : value;
+        }
+
+        private MaterialType readOptionalMaterialType() {
+
+            MaterialType[] types = MaterialType.values();
+
+            System.out.println();
+            System.out.println("Material type:");
+            System.out.println("0. Any");
+
+            for (int i = 0; i < types.length; i++) {
+                System.out.println(
+                    (i + 1) + ". " + types[i].getDisplayName()
+                );
+            }
+
+            while (true) {
+
+                System.out.print("Choose: ");
+
+                try {
+
+                    int choice = Integer.parseInt(
+                        scanner.nextLine().trim()
+                    );
+
+                    if (choice == 0) {
+                        return null;
+                    }
+
+                    if (choice >= 1 && choice <= types.length) {
+                        return types[choice - 1];
+                    }
+
+                } catch (NumberFormatException ignored) {
+                }
+
+                System.out.println("Invalid choice.");
+            }
+        }
+
+        private AgeGroup readOptionalAgeGroup() {
+
+            AgeGroup[] groups = AgeGroup.values();
+
+            System.out.println();
+            System.out.println("Age group:");
+            System.out.println("0. Any");
+
+            for (int i = 0; i < groups.length; i++) {
+                System.out.println(
+                    (i + 1) + ". " + groups[i].getDisplayName()
+                );
+            }
+
+            while (true) {
+
+                System.out.print("Choose: ");
+
+                try {
+
+                    int choice = Integer.parseInt(
+                        scanner.nextLine().trim()
+                    );
+
+                    if (choice == 0) {
+                        return null;
+                    }
+
+                    if (choice >= 1 && choice <= groups.length) {
+                        return groups[choice - 1];
+                    }
+
+                } catch (NumberFormatException ignored) {
+                }
+
+                System.out.println("Invalid choice.");
+            }
+        }
+
+        private Double readOptionalDouble(String fieldName) {
+
+            while (true) {
+
+                System.out.print(fieldName + " (Enter to skip): ");
+
+                String input = scanner.nextLine().trim();
+
+                if (input.isBlank()) {
+                    return null;
+                }
+
+                try {
+                    return Double.parseDouble(input);
+
+                } catch (NumberFormatException e) {
+                    System.out.println("Please enter a valid number.");
+                }
+            }
+        }
+
+        private Integer readOptionalInteger(String fieldName) {
+
+            while (true) {
+
+                System.out.print(fieldName + " (Enter to skip): ");
+
+                String input = scanner.nextLine().trim();
+
+                if (input.isBlank()) {
+                    return null;
+                }
+
+                try {
+                    return Integer.parseInt(input);
+
+                } catch (NumberFormatException e) {
+                    System.out.println("Please enter a valid integer.");
+                }
+            }
+        }
+
+        private Boolean readOptionalAvailable() {
+
+            System.out.println();
+            System.out.println("Availability:");
+            System.out.println("0. Any");
+            System.out.println("1. Available");
+            System.out.println("2. Out of stock");
+
+            while (true) {
+
+                System.out.print("Choose: ");
+
+                String input = scanner.nextLine().trim();
+
+                try {
+
+                    int choice = Integer.parseInt(input);
+
+                    switch (choice) {
+                        case 0:
+                            return null;
+
+                        case 1:
+                            return true;
+
+                        case 2:
+                            return false;
+
+                        default:
+                            System.out.println("Invalid choice.");
+                    }
+
+                } catch (NumberFormatException e) {
+                    System.out.println("Please enter a valid choice.");
+                }
+            }
+        }
+
+        private void showSearchResults(List<Book> books) {
+
+            if (books.isEmpty()) {
+                System.out.println("No books found.");
+                return;
+            }
+
+            System.out.println();
+            System.out.println("Search results:");
+            System.out.println("------------------------------");
+
+            for (Book book : books) {
+                showRow(book);
+            }
         }
         
         private void showRow(Book book) {
