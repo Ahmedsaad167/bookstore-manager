@@ -48,6 +48,8 @@ public class BookMenu {
                 }
             } catch (SQLException e) {
                 System.err.println("Database error: " + e.getMessage());
+            } catch (IllegalArgumentException e) {
+                System.err.println("Invalid input: " + e.getMessage());
             }
 
             System.out.println();
@@ -260,9 +262,10 @@ public class BookMenu {
             book.setPublisher(scanner.nextLine().trim());
 
             System.out.print("Publication year: ");
-            book.setPublicationYear(
-                    Integer.parseInt(scanner.nextLine().trim())
-            );
+            String publicationYearInput = scanner.nextLine().trim();
+
+            int publicationYear = publicationYearInput.isBlank() ? 0 : Integer.parseInt(publicationYearInput);
+            book.setPublicationYear(publicationYear);
 
             System.out.print("ISBN: ");
             book.setIsbn(scanner.nextLine().trim());
