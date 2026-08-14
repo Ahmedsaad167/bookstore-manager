@@ -62,30 +62,6 @@ public class BookService {
         return bookDao.findAll();
     }
 
-    public List<Book> searchByTitle(String title) throws SQLException {
-        validateSearchText(title, "title");
-        
-        return bookDao.findByTitle(title);
-    }
-
-    public List<Book> searchByCategory(String category) throws SQLException {
-        validateSearchText(category, "category");
-        
-        return bookDao.findByCategory(category);
-    }
-
-    public List<Book> searchByAuthor(String author) throws SQLException {
-        validateSearchText(author, "author");
-        
-        return bookDao.findByAuthor(author);
-    }
-
-    public List<Book> searchByPublisher(String publisher) throws SQLException {
-        validateSearchText(publisher, "publisher");
-        
-        return bookDao.findByPublisher(publisher);
-    }
-
     public List<Book> search(BookSearchCriteria criteria) throws SQLException {
         validateSearchCriteria(criteria);
 
@@ -101,12 +77,6 @@ public class BookService {
         
         if (book.getSellingPrice() < book.getPurchasePrice()) {
             throw new IllegalArgumentException("Selling price cannot be lower than purchase price.");
-        }
-    }
-    
-    private void validateSearchText(String value, String fieldName) {
-        if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException("Search " + fieldName + " cannot be null or blank.");
         }
     }
     
