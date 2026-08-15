@@ -4,8 +4,10 @@ import java.util.List;
 import java.sql.SQLException;
 
 import io.github.ahmedsaad167.bookstoremanager.model.Book;
+import io.github.ahmedsaad167.bookstoremanager.search.BookSearchCriteria;
 import io.github.ahmedsaad167.bookstoremanager.service.BookService;
 import io.github.ahmedsaad167.bookstoremanager.ui.dialog.BookFormDialog;
+import io.github.ahmedsaad167.bookstoremanager.ui.dialog.BookSearchDialog;
 import io.github.ahmedsaad167.bookstoremanager.ui.dialog.UpdateBookDialog;
 import io.github.ahmedsaad167.bookstoremanager.ui.dialog.StockAdjustmentDialog;
 
@@ -17,14 +19,17 @@ import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.Alert;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 
 public class BookView {
     private final BookService bookService;
+    private TextField searchField;
 
     private final TableView<Book> table = new TableView<>();
 
@@ -38,7 +43,7 @@ public class BookView {
 
         root.setNodeOrientation(NodeOrientation.RIGHT_TO_LEFT);
 
-        root.setTop(createTopBar());
+        root.setTop(createHeader());
         root.setCenter(createTable());
 
         loadBooks();
@@ -326,5 +331,139 @@ public class BookView {
         alert.getDialogPane().setNodeOrientation(NodeOrientation.RIGHT_TO_LEFT);
 
         alert.showAndWait();
+    }
+
+    private VBox createHeader() {
+
+        VBox header = new VBox(10);
+
+        header.setNodeOrientation(
+            NodeOrientation.RIGHT_TO_LEFT
+        );
+
+        header.getChildren().addAll(
+            createTopBar(),
+            createSearchBar()
+        );
+
+        header.setStyle("""
+            -fx-padding: 15px;
+        """);
+
+        return header;
+    }
+
+    private HBox createSearchBar() {
+
+        Label label = new Label(":بحث");
+
+        searchField = new TextField();
+        searchField.setPromptText("ابحث بعنوان الكتاب...");
+        searchField.setPrefWidth(300);
+
+        Button searchButton = new Button("بحث");
+        Button clearButton = new Button("مسح");
+        Button advancedSearchButton = new Button("بحث متقدم");
+
+        searchButton.setOnAction(
+            event -> searchBooks()
+        );
+
+        clearButton.setOnAction(
+            event -> {
+                searchField.clear();
+                loadBooks();
+            }
+        );
+
+        searchField.setOnAction(
+            event -> searchBooks()
+        );
+
+        advancedSearchButton.setOnAction(event -> advancedSearch());
+
+        HBox bar = new HBox(
+            10,
+            label,
+            searchField,
+            searchButton,
+            clearButton,
+            advancedSearchButton
+        );
+
+        bar.setNodeOrientation(
+            NodeOrientation.RIGHT_TO_LEFT
+        );
+
+        return bar;
+    }
+
+    private void searchBooks() {
+
+        String text =
+            searchField.getText().trim();
+
+        if (text.isBlank()) {
+            loadBooks();
+            return;
+        }
+
+        BookSearchCriteria criteria =
+            new BookSearchCriteria();
+
+        criteria.setTitle(text);
+
+        try {
+
+            List<Book> books =
+                bookService.search(criteria);
+
+            table.setItems(
+                FXCollections.observableArrayList(books)
+            );
+
+        } catch (SQLException e) {
+
+            showError(
+                "حدث خطأ أثناء البحث:\n"
+                + e.getMessage()
+            );
+        }
+    }
+
+    private void advancedSearch() {
+
+        BookSearchDialog dialog =
+            new BookSearchDialog();
+
+        BookSearchCriteria criteria =
+            dialog.showAndWait();
+
+        if (criteria == null) {
+            return;
+        }
+
+        try {
+
+            List<Book> books =
+                bookService.search(criteria);
+
+            table.setItems(
+                FXCollections.observableArrayList(books)
+            );
+
+        } catch (NumberFormatException e) {
+
+            showError(
+                "تأكد من إدخال السنة والأسعار بشكل صحيح."
+            );
+
+        } catch (SQLException e) {
+
+            showError(
+                "حدث خطأ أثناء البحث:\n"
+                + e.getMessage()
+            );
+        }
     }
 }
