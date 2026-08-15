@@ -13,6 +13,8 @@ import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.geometry.NodeOrientation;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TableColumn;
@@ -62,6 +64,7 @@ public class BookView {
         
         addButton.setOnAction(event -> addBook());
         editButton.setOnAction(event -> updateSelectedBook());
+        deleteButton.setOnAction(event -> deleteSelectedBook());
         increaseStockButton.setOnAction(event -> increaseSelectedBookStock());
         decreaseStockButton.setOnAction(event -> decreaseSelectedBookStock());
         refreshButton.setOnAction(event -> loadBooks());
@@ -211,6 +214,33 @@ public class BookView {
         }
     }
 
+    private void deleteSelectedBook() {
+
+        Book selectedBook = table.getSelectionModel().getSelectedItem();
+        if (selectedBook == null) {
+            showError("يرجى اختيار كتاب أولًا");
+            return;
+        }
+
+        Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION);
+
+        confirmation.setTitle("تأكيد الحذف");
+        confirmation.setHeaderText("حذف الكتاب");
+        confirmation.setContentText(selectedBook.getTitle() + ":هل أنت متأكد من حذف الكتاب " + "\nلا يمكن التراجع عن هذه العملية\n");
+        confirmation.getDialogPane().setNodeOrientation(NodeOrientation.RIGHT_TO_LEFT);
+
+        ButtonType deleteButton = new ButtonType("حذف", ButtonBar.ButtonData.OK_DONE);
+        ButtonType cancelButton = new ButtonType("إلغاء", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+        confirmation.getButtonTypes().setAll(deleteButton, cancelButton);
+
+        confirmation.showAndWait().ifPresent(result -> {
+            if (result == deleteButton) {
+                performDelete(selectedBook);
+            }
+        });
+    }
+
     private void increaseSelectedBookStock() {
 
         Book selectedBook =
@@ -267,5 +297,34 @@ public class BookView {
         if (updated) {
             loadBooks();
         }
+    }
+
+    private void performDelete(Book book) {
+        try {
+            boolean deleted = bookService.deleteBook(book.getId());
+            if (deleted) {
+                loadBooks();
+                showInformation("تم حذف الكتاب بنجاح.");
+            }
+            else {
+                showError("لم يتم العثور على الكتاب.");
+            }
+        } catch (IllegalArgumentException e) {
+            showError(e.getMessage());
+        } catch (SQLException e) {
+            showError("حدث خطأ في قاعدة البيانات:\n" + e.getMessage());
+        }
+    }
+
+    private void showInformation(String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+
+        alert.setTitle("تمت العملية.");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+
+        alert.getDialogPane().setNodeOrientation(NodeOrientation.RIGHT_TO_LEFT);
+
+        alert.showAndWait();
     }
 }
