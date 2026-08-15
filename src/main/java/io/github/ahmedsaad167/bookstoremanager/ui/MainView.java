@@ -1,17 +1,28 @@
 package io.github.ahmedsaad167.bookstoremanager.ui;
 
-import javafx.geometry.Pos;
+import javafx.geometry.NodeOrientation;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+
+import io.github.ahmedsaad167.bookstoremanager.service.BookService;
 
 public class MainView {
+
+    private final BookService bookService;
+
+    public MainView(BookService bookService) {
+        this.bookService = bookService;
+    }
     
     public TabPane build() {
 
         TabPane tabPane = new TabPane();
+
+        tabPane.setNodeOrientation(NodeOrientation.RIGHT_TO_LEFT);
+
+        BookView bookView = new BookView(bookService);
 
         Tab booksTab = new Tab("الكتب");
         Tab customersTab = new Tab("العملاء");
@@ -23,7 +34,7 @@ public class MainView {
         ordersTab.setClosable(false);
         reportsTab.setClosable(false);
 
-        booksTab.setContent(createPlaceholder("قسم الكتب"));
+        booksTab.setContent(bookView.build());
         customersTab.setContent(createPlaceholder("قسم العملاء"));
         ordersTab.setContent(createPlaceholder("قسم الطلبات"));
         reportsTab.setContent(createPlaceholder("قسم التقارير"));
@@ -49,7 +60,7 @@ public class MainView {
 
         StackPane container = new StackPane(label);
 
-        StackPane.setAlignment(label, Pos.CENTER);
+        container.setNodeOrientation(NodeOrientation.RIGHT_TO_LEFT);
 
         return container;
     }
