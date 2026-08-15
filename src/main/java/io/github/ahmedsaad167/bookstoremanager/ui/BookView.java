@@ -6,6 +6,8 @@ import java.sql.SQLException;
 import io.github.ahmedsaad167.bookstoremanager.model.Book;
 import io.github.ahmedsaad167.bookstoremanager.service.BookService;
 import io.github.ahmedsaad167.bookstoremanager.ui.dialog.BookFormDialog;
+import io.github.ahmedsaad167.bookstoremanager.ui.dialog.UpdateBookDialog;
+import io.github.ahmedsaad167.bookstoremanager.ui.dialog.StockAdjustmentDialog;
 
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
@@ -54,18 +56,24 @@ public class BookView {
         Button addButton = new Button("إضافة كتاب");
         Button editButton = new Button("تعديل");
         Button deleteButton = new Button("حذف");
+        Button increaseStockButton = new Button("إضافة للمخزون");
+        Button decreaseStockButton = new Button("سحب من المخزون");
         Button refreshButton = new Button("تحديث");
-
+        
         addButton.setOnAction(event -> addBook());
+        editButton.setOnAction(event -> updateSelectedBook());
+        increaseStockButton.setOnAction(event -> increaseSelectedBookStock());
+        decreaseStockButton.setOnAction(event -> decreaseSelectedBookStock());
         refreshButton.setOnAction(event -> loadBooks());
 
-        HBox bar = new HBox(10, title, addButton, editButton, deleteButton, refreshButton);
+        HBox bar = new HBox(10, title, addButton, editButton, deleteButton, increaseStockButton, decreaseStockButton,refreshButton);
 
         bar.setNodeOrientation(NodeOrientation.RIGHT_TO_LEFT);
 
         bar.setStyle("""
             -fx-padding: 15px;
         """);
+
 
         return bar;
     }
@@ -173,5 +181,91 @@ public class BookView {
         );
 
         alert.showAndWait();
+    }
+
+    private void updateSelectedBook() {
+
+        Book selectedBook =
+            table.getSelectionModel().getSelectedItem();
+
+        if (selectedBook == null) {
+
+            showError(
+                "يرجى اختيار كتاب أولًا."
+            );
+
+            return;
+        }
+
+        UpdateBookDialog dialog =
+            new UpdateBookDialog(
+                bookService,
+                selectedBook
+            );
+
+        boolean updated =
+            dialog.showAndWait();
+
+        if (updated) {
+            loadBooks();
+        }
+    }
+
+    private void increaseSelectedBookStock() {
+
+        Book selectedBook =
+            table.getSelectionModel().getSelectedItem();
+
+        if (selectedBook == null) {
+
+            showError(
+                "يرجى اختيار كتاب أولًا."
+            );
+
+            return;
+        }
+
+        StockAdjustmentDialog dialog =
+            new StockAdjustmentDialog(
+                bookService,
+                selectedBook,
+                true
+            );
+
+        boolean updated =
+            dialog.showAndWait();
+
+        if (updated) {
+            loadBooks();
+        }
+    }
+
+    private void decreaseSelectedBookStock() {
+
+        Book selectedBook =
+            table.getSelectionModel().getSelectedItem();
+
+        if (selectedBook == null) {
+
+            showError(
+                "يرجى اختيار كتاب أولًا."
+            );
+
+            return;
+        }
+
+        StockAdjustmentDialog dialog =
+            new StockAdjustmentDialog(
+                bookService,
+                selectedBook,
+                false
+            );
+
+        boolean updated =
+            dialog.showAndWait();
+
+        if (updated) {
+            loadBooks();
+        }
     }
 }

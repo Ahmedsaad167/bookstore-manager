@@ -69,6 +69,47 @@ public class BookService {
             return bookDao.search(connection, criteria);
         }
     }
+
+    public boolean increaseStock(int bookId, int quantity) throws SQLException {
+
+        validateStockAdjustment(bookId, quantity);
+
+        try (Connection connection = DatabaseManager.getConnection()) {
+
+            if (bookDao.findById(connection, bookId) == null) {
+                throw new IllegalArgumentException("Book not found.");
+            }
+
+            return bookDao.increaseStock(connection, bookId, quantity);
+        }
+    }
+
+    public boolean decreaseStock(int bookId, int quantity) throws SQLException {
+
+        validateStockAdjustment(bookId, quantity);
+
+        try (Connection connection = DatabaseManager.getConnection()) {
+
+            if (bookDao.findById(connection, bookId) == null) {
+                throw new IllegalArgumentException("Book not found.");
+            }
+
+            return bookDao.decreaseStock(connection, bookId, quantity);
+        }
+    }
+
+    private void validateStockAdjustment(int bookId, int quantity) {
+
+        if (bookId <= 0) {
+            throw new IllegalArgumentException("Invalid book ID.");
+        }
+
+        if (quantity <= 0) {
+            throw new IllegalArgumentException(
+                "Quantity must be greater than zero."
+            );
+        }
+    }
     
     private void validateBookForSale(Book book) {
         if (book == null) {
