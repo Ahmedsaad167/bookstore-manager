@@ -5,6 +5,8 @@ import java.sql.SQLException;
 
 import io.github.ahmedsaad167.bookstoremanager.model.Book;
 import io.github.ahmedsaad167.bookstoremanager.service.BookService;
+import io.github.ahmedsaad167.bookstoremanager.ui.dialog.BookFormDialog;
+
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.geometry.NodeOrientation;
@@ -13,6 +15,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.control.Alert;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 
@@ -53,6 +56,7 @@ public class BookView {
         Button deleteButton = new Button("حذف");
         Button refreshButton = new Button("تحديث");
 
+        addButton.setOnAction(event -> addBook());
         refreshButton.setOnAction(event -> loadBooks());
 
         HBox bar = new HBox(10, title, addButton, editButton, deleteButton, refreshButton);
@@ -135,5 +139,39 @@ public class BookView {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    private void addBook() {
+
+        BookFormDialog dialog = new BookFormDialog();
+
+        Book book = dialog.show();
+
+        if (book == null) {
+            return;
+        }
+
+        try {
+
+            bookService.addBook(book);
+            loadBooks();
+        } catch (SQLException e) {
+            showError("حدث خطأ أثناء إضافة الكتاب:\n" + e.getMessage());
+        }
+    }
+
+    private void showError(String message) {
+
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+
+        alert.setTitle("خطأ");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+
+        alert.getDialogPane().setNodeOrientation(
+            NodeOrientation.RIGHT_TO_LEFT
+        );
+
+        alert.showAndWait();
     }
 }
