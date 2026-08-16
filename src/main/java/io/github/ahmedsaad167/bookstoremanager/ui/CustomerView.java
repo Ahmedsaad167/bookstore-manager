@@ -1,11 +1,12 @@
 package io.github.ahmedsaad167.bookstoremanager.ui;
 
 import io.github.ahmedsaad167.bookstoremanager.service.CustomerService;
+import io.github.ahmedsaad167.bookstoremanager.model.Customer;
+import io.github.ahmedsaad167.bookstoremanager.ui.dialog.CustomerFormDialog;
 
 import java.sql.SQLException;
 import java.util.List;
 
-import io.github.ahmedsaad167.bookstoremanager.model.Customer;
 import javafx.collections.FXCollections;
 import javafx.geometry.NodeOrientation;
 import javafx.scene.control.Alert;
@@ -55,7 +56,7 @@ public class CustomerView {
         Button deleteButton = new Button("حذف");
         Button refreshButton = new Button("تحديث");
         
-        // addButton.setOnAction(event -> addCustomer());
+        addButton.setOnAction(event -> addCustomer());
         // editButton.setOnAction(event -> updateSelectedCustomer());
         // deleteButton.setOnAction(event -> deleteSelectedCustomer());
         refreshButton.setOnAction(event -> loadCustomers());
@@ -134,6 +135,26 @@ public class CustomerView {
         );
 
         alert.showAndWait();
+    }
+
+    private void addCustomer() {
+        CustomerFormDialog dialog = new CustomerFormDialog();
+
+        Customer customer = dialog.showAndWait();
+
+        if (customer == null) {
+            return;
+        }
+
+        try {
+            customerService.addCustomer(customer);
+
+            loadCustomers();
+        } catch (IllegalArgumentException e) {
+            showError(e.getMessage());
+        } catch (SQLException e) {
+            showError(":حدث خطأ أثناء إضافة العميل\n" + e.getMessage());
+        }
     }
 
 }
