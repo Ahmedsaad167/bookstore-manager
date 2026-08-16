@@ -2,7 +2,9 @@ package io.github.ahmedsaad167.bookstoremanager.ui;
 
 import io.github.ahmedsaad167.bookstoremanager.service.CustomerService;
 import io.github.ahmedsaad167.bookstoremanager.model.Customer;
+import io.github.ahmedsaad167.bookstoremanager.search.CustomerSearchCriteria;
 import io.github.ahmedsaad167.bookstoremanager.ui.dialog.CustomerFormDialog;
+import io.github.ahmedsaad167.bookstoremanager.ui.dialog.CustomerSearchDialog;
 import io.github.ahmedsaad167.bookstoremanager.ui.dialog.UpdateCustomerDialog;
 
 
@@ -16,14 +18,18 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 
 public class CustomerView {
     
     private final CustomerService customerService;
     private final TableView<Customer> table = new TableView<>();
+
+    private TextField searchField;
 
     public CustomerView(CustomerService customerService) {
         this.customerService = customerService;
@@ -35,7 +41,7 @@ public class CustomerView {
 
         root.setNodeOrientation(NodeOrientation.RIGHT_TO_LEFT);
 
-        root.setTop(createTopBar());
+        root.setTop(createHeader());
         root.setCenter(createTable());
 
         loadCustomers();
@@ -209,4 +215,127 @@ public class CustomerView {
         alert.showAndWait();
     }
 
+
+    private VBox createHeader() {
+
+        VBox header = new VBox(10);
+
+        header.setNodeOrientation(
+            NodeOrientation.RIGHT_TO_LEFT
+        );
+
+        header.getChildren().addAll(
+            createTopBar(),
+            createSearchBar()
+        );
+
+        header.setStyle("""
+            -fx-padding: 15px;
+        """);
+
+        return header;
+    }
+
+    private HBox createSearchBar() {
+
+        Label label = new Label(":بحث");
+
+        searchField = new TextField();
+        searchField.setPromptText("ابحث برقم الهاتف...");
+        searchField.setPrefWidth(300);
+
+        Button searchButton = new Button("بحث");
+        Button clearButton = new Button("مسح");
+        Button advancedSearchButton = new Button("بحث متقدم");
+
+        searchButton.setOnAction(
+            event -> searchCustomers()
+        );
+
+        clearButton.setOnAction(
+            event -> {
+                searchField.clear();
+                loadCustomers();
+            }
+        );
+
+        searchField.setOnAction(
+            event -> searchCustomers()
+        );
+
+        advancedSearchButton.setOnAction(event -> advancedSearch());
+
+        HBox bar = new HBox(
+            10,
+            label,
+            searchField,
+            searchButton,
+            clearButton,
+            advancedSearchButton
+        );
+
+        bar.setNodeOrientation(
+            NodeOrientation.RIGHT_TO_LEFT
+        );
+
+        return bar;
+    }
+
+    private void searchCustomers() {
+
+        String text = searchField.getText();
+
+        if (text == null || text.isBlank()) {
+            loadCustomers();
+            return;
+        }
+
+        CustomerSearchCriteria criteria = new CustomerSearchCriteria();
+
+        criteria.setPhone(text);
+
+        try {
+            List<Customer> customers = customerService.search(criteria);
+
+            table.setItems(FXCollections.observableArrayList(customers));
+        } catch (IllegalArgumentException e) {
+            showError(e.getMessage());
+        } catch (SQLException e) {
+            showError(":خطأ أثناء البحث\n" + e.getMessage());
+        }
+    }    
+
+    private void advancedSearch() {
+
+        CustomerSearchDialog dialog =
+            new CustomerSearchDialog();
+
+        CustomerSearchCriteria criteria =
+            dialog.showAndWait();
+
+        if (criteria == null) {
+            return;
+        }
+
+        try {
+
+            List<Customer> customers =
+                customerService.search(criteria);
+
+            table.setItems(
+                FXCollections.observableArrayList(customers)
+            );
+
+        } catch (IllegalArgumentException e) {
+
+            showError(e.getMessage());
+
+        } catch (SQLException e) {
+
+            showError(
+                "خطأ أثناء البحث:\n"
+                + e.getMessage()
+            );
+        }
+    }
 }
