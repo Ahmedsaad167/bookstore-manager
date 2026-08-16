@@ -3,6 +3,8 @@ package io.github.ahmedsaad167.bookstoremanager.ui;
 import io.github.ahmedsaad167.bookstoremanager.service.CustomerService;
 import io.github.ahmedsaad167.bookstoremanager.model.Customer;
 import io.github.ahmedsaad167.bookstoremanager.ui.dialog.CustomerFormDialog;
+import io.github.ahmedsaad167.bookstoremanager.ui.dialog.UpdateCustomerDialog;
+
 
 import java.sql.SQLException;
 import java.util.List;
@@ -57,7 +59,7 @@ public class CustomerView {
         Button refreshButton = new Button("تحديث");
         
         addButton.setOnAction(event -> addCustomer());
-        // editButton.setOnAction(event -> updateSelectedCustomer());
+        editButton.setOnAction(event -> updateSelectedCustomer());
         // deleteButton.setOnAction(event -> deleteSelectedCustomer());
         refreshButton.setOnAction(event -> loadCustomers());
 
@@ -155,6 +157,56 @@ public class CustomerView {
         } catch (SQLException e) {
             showError(":حدث خطأ أثناء إضافة العميل\n" + e.getMessage());
         }
+    }
+
+    private void updateSelectedCustomer() {
+
+        Customer selectedCustomer =
+            table.getSelectionModel()
+                .getSelectedItem();
+
+        if (selectedCustomer == null) {
+
+            showError(
+                "يرجى اختيار عميل أولًا."
+            );
+
+            return;
+        }
+
+        UpdateCustomerDialog dialog =
+            new UpdateCustomerDialog(
+                customerService,
+                selectedCustomer
+            );
+
+        boolean updated =
+            dialog.showAndWait();
+
+        if (updated) {
+
+            loadCustomers();
+
+            showInformation(
+                "تم تعديل بيانات العميل بنجاح."
+            );
+        }
+    }
+
+    private void showInformation(String message) {
+
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+
+        alert.setTitle("تمت العملية");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+
+        alert.getDialogPane()
+            .setNodeOrientation(
+                NodeOrientation.RIGHT_TO_LEFT
+            );
+
+        alert.showAndWait();
     }
 
 }
