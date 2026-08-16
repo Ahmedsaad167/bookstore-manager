@@ -253,8 +253,8 @@ public class OrderDao {
             SELECT EXISTS (
                 SELECT 1
                 FROM "order_items"
-                WHERE "book_id" = ? ;
-            )
+                WHERE "book_id" = ?
+            );
         """;
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
