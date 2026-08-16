@@ -7,13 +7,16 @@ import javafx.scene.control.TabPane;
 import javafx.scene.layout.StackPane;
 
 import io.github.ahmedsaad167.bookstoremanager.service.BookService;
+import io.github.ahmedsaad167.bookstoremanager.service.CustomerService;
 
 public class MainView {
 
     private final BookService bookService;
+    private final CustomerService customerService;
 
-    public MainView(BookService bookService) {
+    public MainView(BookService bookService, CustomerService customerService) {
         this.bookService = bookService;
+        this.customerService = customerService;
     }
     
     public TabPane build() {
@@ -23,6 +26,7 @@ public class MainView {
         tabPane.setNodeOrientation(NodeOrientation.RIGHT_TO_LEFT);
 
         BookView bookView = new BookView(bookService);
+        CustomerView customerView = new CustomerView(customerService);
 
         Tab booksTab = new Tab("الكتب");
         Tab customersTab = new Tab("العملاء");
@@ -35,7 +39,7 @@ public class MainView {
         reportsTab.setClosable(false);
 
         booksTab.setContent(bookView.build());
-        customersTab.setContent(createPlaceholder("قسم العملاء"));
+        customersTab.setContent(customerView.build());
         ordersTab.setContent(createPlaceholder("قسم الطلبات"));
         reportsTab.setContent(createPlaceholder("قسم التقارير"));
 
